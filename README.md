@@ -1,9 +1,13 @@
-# AUDIO ECOSYSTEM — 音源リポジトリ 1
+# saww audio ecosystem — 音源リポジトリ 1
 
-[AUDIO ECOSYSTEM](https://sawwaudio.github.io/audio-ecosystem/)（自然界の実録音で演奏する仮想楽器）が読み込む音源の置き場所です。本体（sawwaudio/audio-ecosystem）の容量を抑えるため、v0.37 から音源を別のリポジトリに分けています。本体からは同じ sawwaudio.github.io の `../audio-ecosystem-sounds-1/` として読み込みます。
+**最新版のアプリ（v0.43・試用）：https://sawwaudio.github.io/audio-ecosystem-sounds-1/**
+本体の公開サイト（https://sawwaudio.github.io/audio-ecosystem/）は、本体リポジトリに書き込めるようになるまで古い版（v0.34）のままです。それまでの間、このリポジトリの `index.html` に最新版を置いています（`build/deploy_sounds_site.py` で作成。本体にある41録音と楽器は本体の公開サイトから読み込みます）。
+
+[saww audio ecosystem](https://sawwaudio.github.io/audio-ecosystem-sounds-1/)（自然界の実録音で演奏する仮想楽器）が読み込む音源の置き場所です。本体（sawwaudio/audio-ecosystem）の容量を抑えるため、v0.37 から音源を別のリポジトリに分けています。本体からは同じ sawwaudio.github.io の `../audio-ecosystem-sounds-1/` として読み込みます。
 
 - `audio/pcm/<id>.flac`：配信用の抜粋（FLAC・可逆圧縮）。16/24-bit の原本は原本のサンプルをそのまま切り出したもの（ビット完全）。32-bit・192kHz・多チャンネルの原本は変換して切り出し、内容を本体の台帳（data/recording_licenses.json の changes 欄）に記録しています。
 - `audio/compat/<id>.mp3`：互換用（44.1kHz・モノラル・128kbps）。抜粋 FLAC から作成。
+- `index.html`：最新版のアプリ（上記）。
 - `transfer/`：本体へ反映するための作業用ファイル（反映後は不要）。
 
 ## 権利
