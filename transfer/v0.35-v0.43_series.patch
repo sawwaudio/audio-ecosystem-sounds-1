@@ -16851,7 +16851,7 @@ index c20f95e..adba9ce 100644
 2.43.0
 
 
-From 71ff36846d0ba5356bd005c39eb6f2438d6b4e4f Mon Sep 17 00:00:00 2001
+From 0b0cbdd6866b1362ecd4ba1df3aa38cbbc155fd1 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Fri, 6 Nov 2026 10:49:26 +0900
 Subject: [PATCH 10/10] =?UTF-8?q?v0.43=EF=BC=9A=E5=86=99=E7=9C=9F=E3=81=A7?=
@@ -16872,43 +16872,47 @@ Content-Transfer-Encoding: 8bit
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01XoRJUrjyZ1vTfG9xTvN2iA
 ---
- .gitignore                       |   1 +
- build/fixtures/photo_fixture.jpg | Bin 0 -> 33550 bytes
- build/fixtures/user_tone.aiff    | Bin 0 -> 288054 bytes
- build/fixtures/user_tone.flac    | Bin 0 -> 20886 bytes
- build/fixtures/user_tone.m4a     | Bin 0 -> 17288 bytes
- build/fixtures/user_tone.mp3     | Bin 0 -> 16941 bytes
- build/fixtures/user_tone.wav     | Bin 0 -> 192078 bytes
- build/integrate_v043.py          | 179 ++++++++++
- build/photo_fixture.js           |   4 +
- build/src_i18n.js                |   6 +
- build/src_studio.css             |  72 ++++
- build/src_studio.js              | 404 ++++++++++++++++++++++
- build/test_attribution.js        |   6 +-
- build/test_badges.js             |   2 +-
- build/test_beds_v028.js          |   2 +-
- build/test_fx.js                 |   2 +-
- build/test_geo.js                |   2 +-
- build/test_i18n.js               |   2 +-
- build/test_japan_beds.js         |   2 +-
- build/test_library_v038.js       |   2 +-
- build/test_memory.js             |   2 +-
- build/test_mixer.js              |   2 +-
- build/test_mixer_cfx.js          |   2 +-
- build/test_parity.js             |   2 +-
- build/test_preset_rights.js      |   2 +-
- build/test_reel.js               |   4 +-
- build/test_reel_motion.js        |  14 +-
- build/test_rights.js             |   2 +-
- build/test_sampler.js            |   2 +-
- build/test_studio_v043.js        |  94 +++++
- build/test_v024.js               |   2 +-
- build/test_v033.js               |   2 +-
- data/product_tiers.json          |  25 ++
- data/species_photos.json         |  35 ++
- docs/PRODUCT_TIERS.md            |  68 ++++
- index.html                       | 572 ++++++++++++++++++++++++++++---
- 36 files changed, 1448 insertions(+), 68 deletions(-)
+ .gitignore                              |   1 +
+ build/deploy_sounds_site.py             |  28 ++
+ build/fixtures/photo_fixture.jpg        | Bin 0 -> 33550 bytes
+ build/fixtures/user_tone.aiff           | Bin 0 -> 288054 bytes
+ build/fixtures/user_tone.flac           | Bin 0 -> 20886 bytes
+ build/fixtures/user_tone.m4a            | Bin 0 -> 17288 bytes
+ build/fixtures/user_tone.mp3            | Bin 0 -> 16941 bytes
+ build/fixtures/user_tone.wav            | Bin 0 -> 192078 bytes
+ build/integrate_v043.py                 | 179 ++++++++
+ build/photo_fixture.js                  |   4 +
+ build/src_i18n.js                       |   6 +
+ build/src_studio.css                    |  72 +++
+ build/src_studio.js                     | 405 +++++++++++++++++
+ build/test_attribution.js               |   6 +-
+ build/test_badges.js                    |   2 +-
+ build/test_beds_v028.js                 |   2 +-
+ build/test_fx.js                        |   2 +-
+ build/test_geo.js                       |   2 +-
+ build/test_i18n.js                      |   2 +-
+ build/test_japan_beds.js                |   2 +-
+ build/test_library_v038.js              |   2 +-
+ build/test_memory.js                    |   2 +-
+ build/test_mixer.js                     |   2 +-
+ build/test_mixer_cfx.js                 |   2 +-
+ build/test_parity.js                    |   2 +-
+ build/test_preset_rights.js             |   2 +-
+ build/test_reel.js                      |   4 +-
+ build/test_reel_motion.js               |  14 +-
+ build/test_rights.js                    |   2 +-
+ build/test_sampler.js                   |   2 +-
+ build/test_studio_v043.js               |  94 ++++
+ build/test_v024.js                      |   2 +-
+ build/test_v033.js                      |   2 +-
+ data/product_tiers.json                 |  25 ++
+ data/species_photos.json                |  35 ++
+ docs/AUDIO_ECOSYSTEM_RD_REPORT_v0_43.md | 156 +++++++
+ docs/AUTOMATION_LOG.md                  |   6 +
+ docs/PRODUCT_TIERS.md                   |  68 +++
+ index.html                              | 573 ++++++++++++++++++++++--
+ 39 files changed, 1640 insertions(+), 68 deletions(-)
+ create mode 100644 build/deploy_sounds_site.py
  create mode 100644 build/fixtures/photo_fixture.jpg
  create mode 100644 build/fixtures/user_tone.aiff
  create mode 100644 build/fixtures/user_tone.flac
@@ -16922,6 +16926,7 @@ Claude-Session: https://claude.ai/code/session_01XoRJUrjyZ1vTfG9xTvN2iA
  create mode 100644 build/test_studio_v043.js
  create mode 100644 data/product_tiers.json
  create mode 100644 data/species_photos.json
+ create mode 100644 docs/AUDIO_ECOSYSTEM_RD_REPORT_v0_43.md
  create mode 100644 docs/PRODUCT_TIERS.md
 
 diff --git a/.gitignore b/.gitignore
@@ -16933,6 +16938,40 @@ index a18662c..6a81a77 100644
  build/shot_*.png
  audio-ecosystem-sounds-1
 +shot_*.png
+diff --git a/build/deploy_sounds_site.py b/build/deploy_sounds_site.py
+new file mode 100644
+index 0000000..fc53834
+--- /dev/null
++++ b/build/deploy_sounds_site.py
+@@ -0,0 +1,28 @@
++#!/usr/bin/env python3
++"""最新版のアプリを音源リポジトリ（sawwaudio/audio-ecosystem-sounds-1）の GitHub Pages に置くためのページを作る。
++本体リポジトリ（sawwaudio/audio-ecosystem）に書き込めない間の公開先。URL は https://sawwaudio.github.io/audio-ecosystem-sounds-1/
++- 音源の場所：音源リポジトリの86録音（../audio-ecosystem-sounds-1/…）はそのまま同じ場所に解決される。
++  本体リポジトリにある41録音・楽器（audio/…・instruments/…）は ../audio-ecosystem/… に書き換え、本体の公開サイト（同じ sawwaudio.github.io）から読む。
++- ファイルの中身（SHA-256）は変えないので、アプリの照合はそのまま通る。
++使い方：python3 build/deploy_sounds_site.py <音源リポジトリのフォルダ>
++"""
++import json, os, re, sys
++ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++out_dir = sys.argv[1]
++t = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
++s = t.index('id="ae-audio-manifest">') + len('id="ae-audio-manifest">'); e = t.index('</script>', s)
++m = json.loads(t[s:e]); n = 0
++def fix(p):
++    global n
++    if p.startswith(('audio/', 'instruments/')):
++        n += 1; return '../audio-ecosystem/' + p
++    return p
++for kind in ('recordings', 'instruments'):
++    for v in m[kind].values():
++        for ent in v.values():
++            if isinstance(ent, dict):
++                if 'path' in ent: ent['path'] = fix(ent['path'])
++                for part in ent.get('parts', []): part['path'] = fix(part['path'])
++t = t[:s] + json.dumps(m, ensure_ascii=False, separators=(',', ':')) + t[e:]
++open(os.path.join(out_dir, 'index.html'), 'w', encoding='utf-8').write(t)
++print('index.html', len(t.encode()), 'bytes · rewritten paths', n)
 diff --git a/build/fixtures/photo_fixture.jpg b/build/fixtures/photo_fixture.jpg
 new file mode 100644
 index 0000000000000000000000000000000000000000..60d2b6fa10979dd6b0d760bac4de0265813162a3
@@ -18418,10 +18457,10 @@ index 0000000..8d19c8d
 +.proChip{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;border:1px solid #d6efc8;color:#d6efc8;font:700 9px ui-monospace,monospace;letter-spacing:.08em;vertical-align:middle}
 diff --git a/build/src_studio.js b/build/src_studio.js
 new file mode 100644
-index 0000000..86ef934
+index 0000000..aa3dfda
 --- /dev/null
 +++ b/build/src_studio.js
-@@ -0,0 +1,404 @@
+@@ -0,0 +1,405 @@
 +/* saww audio ecosystem v0.43 — 写真で選ぶ音（See it. Tap it. Hear it.）・マスター EQ・リール作成・マルチトラック・プラン
 +   本体スクリプト（音声エンジン・音源ライブラリ）の後に読み込む。本体の関数と変数（ctx, master, recordings, loadOne, mixLane など）をそのまま使い、
 +   音声エンジンと音源の対応は変えない。build/integrate_v043.py が index.html の <script id="ae-studio"> にこのファイルを埋め込む。 */
@@ -18460,7 +18499,8 @@ index 0000000..86ef934
 +function chanOf(id){if(userSounds.has(id))return 'sampler';const r=recordings.find(x=>x.id===id);return r&&r.kind==='landscape'?'field':'bio'}
 +function nameOf(id){const u=userSounds.get(id);if(u)return u.name;const r=recordings.find(x=>x.id===id);return r?r.jp:id}
 +function playingIds(){return [...tileState.values()].filter(s=>s.voice).map(s=>s.id)}
-+function ampOf(id){const u=userSounds.get(id);if(u)return u.amp;const r=recordings.find(x=>x.id===id);return .5*(bufferGains.get(id)??r?.performanceGain??1)}
++// タイルは1つずつ聞くことが多いので、自律演奏の1声（×0.5）より 6dB 大きく鳴らす（全体はマスターのリミッターで守る）
++function ampOf(id){const u=userSounds.get(id);if(u)return u.amp;const r=recordings.find(x=>x.id===id);return 1*(bufferGains.get(id)??r?.performanceGain??1)}
 +function creditKeysOf(id){const u=userSounds.get(id);return u?[...(u.credits||[])]:[]}
 +function noteTile(id,fn){fn('recording',id);for(const k of creditKeysOf(id)){const [kind,...rest]=k.split(':');fn(kind,rest.join(':'))}}
 +async function bufferOf(id){const u=userSounds.get(id);if(u)return u.buffer;return loadOne(id)}
@@ -18568,7 +18608,7 @@ index 0000000..86ef934
 +function uniqueId(prefix,name){let id=prefix+':'+name,n=2;while(userSounds.has(id))id=prefix+':'+name+' ('+(n++)+')';return id}
 +function rmsOf(b){let q=0,n=0;const step=Math.max(1,Math.floor(b.length/400000));for(let c=0;c<b.numberOfChannels;c++){const d=b.getChannelData(c);for(let i=0;i<d.length;i+=step){q+=d[i]*d[i];n++}}return Math.sqrt(q/Math.max(1,n))}
 +function addUserSound(name,buffer,origin,extra={}){const id=uniqueId(origin==='mic'?'mic':origin==='bounce'?'bounce':'import',name);const rms=rmsOf(buffer);
-+ userSounds.set(id,{id,name,file:extra.file||name,buffer,origin,img:null,amp:clamp(.035/Math.max(1e-5,rms),.05,6)*.5,credits:extra.credits||new Set()});bufferOrigins.set(id,'import');return id}
++ userSounds.set(id,{id,name,file:extra.file||name,buffer,origin,img:null,amp:clamp(.035/Math.max(1e-5,rms),.05,6),credits:extra.credits||new Set()});bufferOrigins.set(id,'import');return id}
 +// AIFF（非圧縮 PCM）の読み込み。Chrome は decodeAudioData で AIFF を読めないため自前で読む。AIFC の圧縮形式は扱わない。
 +function parseAiff(ab){const v=new DataView(ab);const s4=o=>String.fromCharCode(v.getUint8(o),v.getUint8(o+1),v.getUint8(o+2),v.getUint8(o+3));
 + if(s4(0)!=='FORM'||!/^AIF[FC]$/.test(s4(8)))return null;let o=12,ch=0,frames=0,bits=0,sr=0,data=-1,comp='NONE';
@@ -18605,7 +18645,7 @@ index 0000000..86ef934
 + try{await smpEnsureCtx();t.buffer=await bufferOf(src);if(!userSounds.has(src)&&!rightsAllowed(src)){tracks.splice(tracks.indexOf(t),1);status(L('商用モードの対象外の録音はトラックに入れません。','Recordings excluded by the commercial mode cannot be added.'))}}
 + catch(e){tracks.splice(tracks.indexOf(t),1);trkStatus(L('読み込みに失敗しました: ','Loading failed: ')+(e.message||e.name))}renderTracks()}
 +function trkDest(t){return t.dest==='master'?master._lim:mixLane('sampler')}
-+function trkSchedule(t0){for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const src=ctx.createBufferSource(),g=G(t.vol*ampOf(t.src)*2),pan=ctx.createStereoPanner?ctx.createStereoPanner():G(1);
++function trkSchedule(t0){for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const src=ctx.createBufferSource(),g=G(t.vol*ampOf(t.src)),pan=ctx.createStereoPanner?ctx.createStereoPanner():G(1);
 +  src.buffer=t.buffer;if(pan.pan)pan.pan.value=t.pan;src.connect(g);g.connect(pan);pan.connect(trkDest(t));const at=Math.max(ctx.currentTime,t0+t.offset);src.start(at);const v={src,g,pan,t};trk.voices.add(v);src.onended=()=>{trk.voices.delete(v);try{pan.disconnect()}catch(e){}};
 +  noteTile(t.src,noteRecUse)}}
 +async function trkPlay(){if(!tracks.some(t=>t.buffer)){trkStatus(L('トラックがありません。','No tracks yet.'));return}await smpEnsureCtx();trkStop(true);trk.playing=true;const len=trackLen();trk.t0=ctx.currentTime+.08;trkSchedule(trk.t0);
@@ -18630,7 +18670,7 @@ index 0000000..86ef934
 + const label=r.kind==='mic'?L('マイク録音 ','Mic take ')+(1+[...userSounds.values()].filter(u=>u.origin==='mic').length):L('出音の録音 ','Output take ')+(1+[...userSounds.values()].filter(u=>u.origin==='bounce').length);
 + const id=addUserSound(label,b,r.kind,{credits:r.credits});addTrack(id);buildTiles();renderTrackSources();renderTransport();trkStatus(L(label+' をトラックと「自分の音」に追加しました（'+b.duration.toFixed(1)+'秒）。',label+' added to tracks and “My sounds” ('+b.duration.toFixed(1)+' s).'))}
 +async function trkMixdown(fmt){const len=trackLen();if(!len){trkStatus(L('トラックがありません。','No tracks yet.'));return}const sr=ctx?ctx.sampleRate:48000,oc=new OfflineAudioContext(2,Math.ceil(len*sr),sr),used=new Set();
-+ for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const s=oc.createBufferSource(),g=oc.createGain(),p=oc.createStereoPanner();s.buffer=t.buffer;g.gain.value=t.vol*ampOf(t.src)*2;p.pan.value=t.pan;s.connect(g);g.connect(p);p.connect(oc.destination);s.start(t.offset);noteTile(t.src,(k,i)=>used.add(k+'|'+i))}
++ for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const s=oc.createBufferSource(),g=oc.createGain(),p=oc.createStereoPanner();s.buffer=t.buffer;g.gain.value=t.vol*ampOf(t.src);p.pan.value=t.pan;s.connect(g);g.connect(p);p.connect(oc.destination);s.start(t.offset);noteTile(t.src,(k,i)=>used.add(k+'|'+i))}
 + const out=await oc.startRendering();let peak=0;for(let c=0;c<2;c++){const d=out.getChannelData(c);for(let i=0;i<d.length;i++)peak=Math.max(peak,Math.abs(d[i]))}const norm=peak>.98?.98/peak:1;
 + const bytes=fmt==='aiff'?encodeAiff24(out,norm):encodeWav24(out,norm),stamp=new Date().toISOString().replace(/[:.]/g,'-'),name='saww_audio_ecosystem_mix_'+stamp+'.'+(fmt==='aiff'?'aif':'wav');
 + downloadBlob(new Blob([bytes],{type:fmt==='aiff'?'audio/aiff':'audio/wav'}),name);
@@ -18657,7 +18697,7 @@ index 0000000..86ef934
 +function renderTracks(){const box=$('trkList');if(!box)return;box.textContent='';if(!tracks.length){box.append(el('p',{class:'micro',text:L('トラックはまだありません。下で音を選んで追加するか、録音してください。','No tracks yet. Add a sound below or record one.')}));renderTransport();return}
 + for(const t of tracks){const name=nameOf(t.src);const row=el('div',{class:'trkRow','data-trk':String(t.id)});
 +  const ctl=(lab,input,out)=>el('label',{class:'trkCtl'},el('span',{text:lab}),input,out||null);
-+  const vol=el('input',{type:'range',min:'0',max:'150',value:String(Math.round(t.vol*100)),'aria-label':name+'の音量'}),volO=el('output',{text:String(Math.round(t.vol*100))});vol.oninput=()=>{t.vol=vol.value/100;volO.textContent=vol.value;for(const v of trk.voices)if(v.t===t)v.g.gain.setTargetAtTime(t.vol*ampOf(t.src)*2,ctx.currentTime,.03)};
++  const vol=el('input',{type:'range',min:'0',max:'150',value:String(Math.round(t.vol*100)),'aria-label':name+'の音量'}),volO=el('output',{text:String(Math.round(t.vol*100))});vol.oninput=()=>{t.vol=vol.value/100;volO.textContent=vol.value;for(const v of trk.voices)if(v.t===t)v.g.gain.setTargetAtTime(t.vol*ampOf(t.src),ctx.currentTime,.03)};
 +  const pan=el('input',{type:'range',min:'-100',max:'100',value:String(Math.round(t.pan*100)),'aria-label':name+'の定位'});pan.oninput=()=>{t.pan=pan.value/100;for(const v of trk.voices)if(v.t===t&&v.pan.pan)v.pan.pan.setTargetAtTime(t.pan,ctx.currentTime,.03)};
 +  const off=el('input',{type:'number',min:'0',max:'600',step:'0.1',value:String(t.offset),inputmode:'decimal','aria-label':name+'の開始位置（秒）'});off.onchange=()=>{t.offset=clamp(+off.value||0,0,600);renderTransport()};
 +  const mute=el('button',{type:'button','aria-pressed':String(t.mute),text:'M','aria-label':name+' ミュート'});mute.onclick=()=>{t.mute=!t.mute;renderTracks()};
@@ -18697,7 +18737,7 @@ index 0000000..86ef934
 +function band(f0,f1){if(!A.freq)return 0;const N=A.freq.length,ny=ctx.sampleRate/2,i0=Math.max(1,Math.round(f0/ny*N)),i1=Math.max(i0,Math.min(N-1,Math.round(f1/ny*N)));let s=0;for(let i=i0;i<=i1;i++)s+=A.freq[i];return s/(i1-i0+1)/255}
 +const MONO='ui-monospace,"SF Mono",Menlo,monospace',SANS='"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
 +function txt(c,s,x,y,font,color,align='left',maxW=9999){c.font=font;c.fillStyle=color;c.textAlign=align;c.fillText(reelFit(c,String(s),maxW),x,y)}
-+function frame(c,x,y,w,h,num,label,val){const P=reelPal;c.fillStyle=P.panel;c.fillRect(x,y,w,h);c.strokeStyle=P.line;c.lineWidth=1.5;c.strokeRect(x+.5,y+.5,w-1,h-1);
++function frame(c,x,y,w,h,num,label,val,clear){const P=reelPal;if(!clear){c.fillStyle=P.panel;c.fillRect(x,y,w,h)}c.strokeStyle=P.line;c.lineWidth=1.5;c.strokeRect(x+.5,y+.5,w-1,h-1);
 + c.strokeStyle=P.acc;c.lineWidth=2;const k=14;for(const [cx,cy,dx,dy] of [[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]]){c.beginPath();c.moveTo(cx+dx*k,cy);c.lineTo(cx,cy);c.lineTo(cx,cy+dy*k);c.stroke()}
 + txt(c,num+'  '+label,x+16,y+30,'600 18px '+MONO,P.dim);const lw=c.measureText(num+'  '+label).width,rx=Math.min(x+w-16,REEL_SAFE.x1);if(val)txt(c,val,rx,y+30,'18px '+MONO,P.acc,'right',Math.max(40,rx-(x+16+lw+18)))}
 +function cover(c,img,x,y,w,h,zoom){const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;if(!iw||!ih)return;const s=Math.max(w/iw,h/ih)*zoom,dw=iw*s,dh=ih*s;c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);c.restore()}
@@ -18715,12 +18755,12 @@ index 0000000..86ef934
 + c.strokeStyle=P.line;c.globalAlpha=.35;c.lineWidth=1;for(let x=40;x<REEL_W;x+=80){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,REEL_H);c.stroke()}for(let y=0;y<REEL_H;y+=80){c.beginPath();c.moveTo(0,y+.5);c.lineTo(REEL_W,y+.5);c.stroke()}c.globalAlpha=1;
 + header(c,t);const id=reelSubject(),r=id&&recordings.find(x=>x.id===id),u=id&&userSounds.get(id),m=(id&&wildMeta[id])||{};
 + // 01 写真
-+ {const x=40,y=336,w=600,h=660;const ph=subjectPhoto(id);c.fillStyle=P.panel;c.fillRect(x,y,w,h);
++ {const x=40,y=336,w=600,h=660;const ph=subjectPhoto(id);c.fillStyle=ph&&ph.e.ok?'#000':P.panel;c.fillRect(x,y,w,h);
 +  if(ph&&ph.e.ok){cover(c,ph.e.img,x,y,w,h,1.02+.05*((t/14)%1));notePhoto(ph)}else{// 統一プレースホルダー：音で揺れる等高線
 +   const cx=x+w/2,cy=y+h/2-40;c.lineWidth=1.4;for(let i=0;i<9;i++){c.beginPath();for(let k=0;k<=64;k++){const a=k/64*6.2832,v=A.freq?A.freq[2+((k*7+i*13)%60)]/255:0,rr=40+i*26+Math.sin(a*3+i+t*.4)*6+v*22;k?c.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr):c.moveTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}c.closePath();c.strokeStyle='hsla('+P.hue+',45%,'+(72-i*5)+'%,'+(.6-i*.05).toFixed(2)+')';c.stroke()}
 +   txt(c,id?(u?'MY SOUND':'FIELD RECORDING · NO PHOTO'):'TAP A PHOTO TO PLAY',cx,y+h-170,'600 20px '+MONO,P.dim,'center')}
 +  const g=c.createLinearGradient(0,y+h-260,0,y+h);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.78)');c.fillStyle=g;c.fillRect(x,y+h-260,w,260);
-+  frame(c,x,y,w,h,'01','SPECIMEN',r?rightsTierOf(r.license)+'-TIER':u?'U-TIER':'');
++  frame(c,x,y,w,h,'01','SPECIMEN',r?rightsTierOf(r.license)+'-TIER':u?'U-TIER':'',true);
 +  if(id){const latin=r?binomial(r.latin)||'':'';txt(c,nameOf(id),x+24,y+h-118,'700 54px '+SANS,'#ffffff','left',w-48);let yy=y+h-78;
 +   if(m.en||latin){c.font='500 26px '+SANS;const en=m.en||'';const ew=en?c.measureText(en+'  ').width:0;if(en)txt(c,en+'  ',x+24,yy,'500 26px '+SANS,'#e2ece6','left',w-48);if(latin)txt(c,latin,x+24+ew,yy,'italic 26px Georgia,"Times New Roman",serif','#d0ddd6','left',w-48-ew);yy+=34}
 +   txt(c,r?'REC  '+(r.location||'—'):(u?(u.origin==='mic'?'MIC RECORDING':'USER AUDIO'):''),x+24,yy,'20px '+SANS,'#c8d6cf','left',w-48)}
@@ -19288,6 +19328,182 @@ index 0000000..8a06827
 + "Turdus philomelos": {"file": "DSC 7411 (9408099988).jpg", "author": "Brian Ralphs from Berkhamsted, Hertfordshire, UK", "license": "CC BY 2.0", "licenseURL": "https://creativecommons.org/licenses/by/2.0/", "page": "https://commons.wikimedia.org/wiki/File:DSC_7411_(9408099988).jpg", "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/DSC_7411_%289408099988%29.jpg/960px-DSC_7411_%289408099988%29.jpg", "w": 963, "h": 1285, "from": "Commons category: Turdus philomelos"},
 + "Zosterops palpebrosus": {"file": "Oriental White-eye (Zosterops palpebrosus) 3.jpg", "author": "Hafiz Issadeen", "license": "CC BY 2.0", "licenseURL": "https://creativecommons.org/licenses/by/2.0/", "page": "https://commons.wikimedia.org/wiki/File:Oriental_White-eye_(Zosterops_palpebrosus)_3.jpg", "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Oriental_White-eye_%28Zosterops_palpebrosus%29_3.jpg/960px-Oriental_White-eye_%28Zosterops_palpebrosus%29_3.jpg", "w": 2700, "h": 1800, "from": "Commons category: Zosterops palpebrosus"}
 +}
+diff --git a/docs/AUDIO_ECOSYSTEM_RD_REPORT_v0_43.md b/docs/AUDIO_ECOSYSTEM_RD_REPORT_v0_43.md
+new file mode 100644
+index 0000000..cf4c1f0
+--- /dev/null
++++ b/docs/AUDIO_ECOSYSTEM_RD_REPORT_v0_43.md
+@@ -0,0 +1,156 @@
++# saww audio ecosystem R&D レポート v0.43
++**2026-11-06（チャット）／引き継ぎ指示書 2026.11.05（TASK 1〜3）、Image-First UI Update、オーナーの要望（全体の LOW/MID/HIGH・リールの区画化・maxim_codex の参考）**
++
++## 0. 公開
++- 最新版（v0.43）は **https://sawwaudio.github.io/audio-ecosystem-sounds-1/** で使える。
++  - 本体リポジトリ sawwaudio/audio-ecosystem には、このチャットからも自動実行からも書き込めない（403）。そのため、書き込める音源リポジトリの `index.html` に置いた。
++  - 作り方は `build/deploy_sounds_site.py`。本体にある41録音と楽器は、本体の公開サイト（同じ sawwaudio.github.io）から読む。
++  - 298ファイルすべてで SHA-256 が一致することを、同じフォルダ構成のローカルで確認した。
++- 本体の公開サイト（/audio-ecosystem/）は v0.34 のまま。
++- 本体に反映するパッチ：音源リポジトリの `transfer/v0.35-v0.43_series.patch`（306830d に11コミット）。
++
++## 1. 変更したファイル
++| ファイル | 内容 |
++|---|---|
++| index.html | v0.35〜v0.42 のパッチ＋v0.43（下記）を組み込んだ統合アプリ |
++| build/src_studio.js（新規） | v0.43 の層：写真のタイル・詳細シート・自分の音・マスター EQ の画面・マルチトラック・リールのテンプレートと区画パネル・共有・プラン |
++| build/src_studio.css（新規） | 上の画面の見た目 |
++| build/integrate_v043.py（新規） | index.html への組み込み。本体への小さな差し込み・画面・データ・辞書。何度実行しても同じ結果 |
++| build/deploy_sounds_site.py（新規） | 音源リポジトリに置く公開用ページを作る |
++| data/species_photos.json（新規） | 生き物の写真32種（学名・撮影者・ライセンス・出典・同定の根拠） |
++| data/product_tiers.json（新規） | FREE / PRO の区分と USD の提案価格（課金は無効） |
++| docs/PRODUCT_TIERS.md（新規） | プランと、課金・アクセス制御の設計（未実装） |
++| build/src_i18n.js | v0.43 の英語（約100件）と規則 |
++| build/test_studio_v043.js（新規）、build/photo_fixture.js（新規）、build/fixtures/（新規） | 回帰テスト。写真はオフラインの試験画像、音声は5形式の試験ファイル |
++| build/test_*.js | 写真の試験画像の読み込みを追加、名称とファイル名の変更、リールのテンプレート名 |
++
++## 2. 実装した機能
++### 2.1 写真で選ぶ音（See it. Tap it. Hear it.）— 画面のいちばん上
++- 127録音すべてをタイルで表示する。写真のある38録音（32種）が先に並ぶ。
++- タップで実録音がループ再生され、もう一度タップで止まる。いくつでも重ねられる（同時に12まで）。
++  - ループの切れ目はクロスフェードでつなぐ。
++- 再生中のタイルは、枠が光り、写真がゆっくり息づき、周波数の小さな波形が出る（動きを減らす設定の時は止める）。
++- 長押し（0.52秒）か i ボタンで詳細シートを開く。
++  - 操作：音量、定位、ループのオン・オフ。
++  - 情報：和名・英名・学名・グループ・録音地・国・録音日・野外か飼育か・作品名・録音者・ライセンス・区分・出典・音声形式・加工・メモ・写真のクレジットと同定の根拠。
++- 写真と音の対応は学名で厳密に管理する。
++  - 写真を付けるのは、録音台帳の latin が「属 種小名」と一致する時だけ。
++  - 「sp.」「複数種」「記載なし」には写真を付けない（推定しない）。
++  - 写真のない89録音は、グループごとの色で同じ型の図（プレースホルダー）を表示する。
++- 写真の条件：
++  - Wikimedia Commons の CC0・パブリックドメイン・CC BY のみ（BY-SA・NC・ND・GFDL は除外）。
++  - 同定の根拠は、Wikidata の代表画像（学名の P18）か、Commons の学名カテゴリー。
++  - 図版・標本・地図・卵などは名前で除き、残った候補は目で見て選んだ。
++  - ヒグラシ・ミンミンゼミ・ツクツクボウシは条件に合う写真がなく、写真なし。
++- 絞り込み：すべて・鳥・虫・動物・水・環境・日本・写真あり・自分の音・再生中。
++- 音の行き先はミキサーのチャンネル（生き物・環境音・サンプラー）。EQ・FX・WAV 録音・リールにそのまま入る。
++  - 商用モードの対象外になった音は自動で止まり、タイルが薄くなる。
++- スクリーンリーダーとキーボード：
++  - タイルは aria-pressed 付きのボタン。Enter・Space で再生と停止、i キーで詳細、Esc で閉じる。
++- 自分の音：
++  - 対応形式は WAV・AIFF・MP3・M4A・FLAC。Chromium では5形式とも読み込めた。AIFF は Chrome が読めないため自前で読む。
++  - 画像を設定でき、削除もできる。
++  - 端末の外へは送らない。
++
++### 2.2 全体の LOW / MID / HIGH（マスター EQ）
++- コンプレッサーの後・リミッターの前に、チャンネルと同じ3バンド・アイソレーター（250Hz・3kHz）を入れた。
++- ミキサーの MASTER の列に LOW・MID・HI のつまみを置いた。中央で 0dB、右いっぱいで +6dB、左いっぱいでキル。
++- 初期化ボタンでマスター EQ も戻る。BEAT FX を「マスター」にかけた時は、EQ の後に入る。
++
++### 2.3 Reel Creator（TASK 1）
++- 9:16、1080×1920、15・30・45・60秒。
++- テンプレート8種：
++  - forest・ocean・night・wildlife：区画パネル。「今の波形もあっていいから、区画してもっと情報量を」という要望と、maxim_codex の情報量の多い見た目を参考にした。
++    - 01 生き物の写真（名前・英名・学名・録音地・撮影者とライセンス）
++    - 02 スペクトラム（ピーク周波数）
++    - 03 ステレオ（位相相関）
++    - 04 ミキサーのチャンネル別レベル
++    - 05 声の輪（v0.37 の波形の輪）
++    - 06 スペクトログラム
++    - 07 データ（学名・場所・録音者・形式・鳴っている音・テンポ・和音・重心周波数）
++    - 08 波形（残像付き）
++  - minimal：文字と波形だけ。
++  - waveform：周波数の稜線。
++  - spectrum：v0.31 の分析。
++  - abstract：v0.37 の「動き」。
++- 画像：鳴いている生き物の写真（自動）、自分の画像（端末から）、なしを選べる。
++- 写真のタイルだけでも作れる。この時は自律演奏を始めず、キャプションも「写真から選んで重ねた音」にする。
++- 書き出し後の画面：
++  - 動画プレビュー
++  - export video
++  - copy credits（説明欄用の全文をコピー）
++  - share（共有シートに動画ファイルを渡せる環境ではファイル、渡せない環境では文面とリンク）
++  - try saww audio ecosystem（アプリのリンクをコピー）
++- 説明欄用の文：写真のクレジット（学名・ファイル名・撮影者・ライセンス・URL）と、アプリへのリンクを追加した。
++- 形式：MP4 に対応するブラウザでは MP4（H.264/AAC）、それ以外では WebM。変換はせず、WebM の時は画面にそう表示する。
++
++### 2.4 Pro の音声エンジン（TASK 2）：トラック / TRACKS
++- 音（実録音・自分の音）をトラックに並べ、同じ時刻に揃えて再生・ループする。
++- トラックごとの操作：音量、定位、開始位置、ミュート、ソロ、送り先（ミキサーのサンプラーチャンネル／マスターへ直接）、削除、波形表示。
++- 録音：マイク（トラックを鳴らしながら重ね録り）と、いまの出音（AudioWorklet、32-bit float）。
++  - 録った音は「自分の音」にも入る。
++  - 出音の録音には、含まれる実録音のクレジットを引き継ぐ。
++- ミックスダウン：WAV 24-bit と AIFF 24-bit、ステレオ。ピークが 0dBFS を超える時は全体を下げる。クレジットの .txt も保存する。
++
++### 2.5 プラン（TASK 3）
++- 「PLANS — FREE / PRO」の欄を追加した。
++  - FREE — create & share.：$0 forever
++  - PRO — perform & produce.：$9.99 USD / month、$99 USD / year（提案価格・未確定）
++- 機能の区分表は13行。PRO の機能4か所（ミキサー・サンプラー・トラック・LIVE CAPTURE）に PRO の印を付けた。
++- 課金は無効。決済の入力欄もない。`sawwEntitlement.enforce=false` で、テスト公開中はすべて無料。設計は docs/PRODUCT_TIERS.md。
++
++### 2.6 名称
++- 「saww audio ecosystem」（すべて小文字）に統一した。対象は画面・タイトル・リール・クレジット・WAV の情報・ファイル名（saww_audio_ecosystem_…）。
++- プリセットの形式名（audio-ecosystem-preset）は互換のため変えていない。
++
++## 3. 動作確認
++- 回帰テスト20本（既存19本＋build/test_studio_v043.js）がすべて合格した。
++- test_studio_v043.js（Chromium・390px 幅・タッチ）の確認内容：
++  - 写真と学名の対応で不一致0。ライセンスは全て CC0・PD・CC BY。
++  - タップで再生、重ね、波形表示、停止。
++  - 長押しで詳細を開き、音量・ループを操作。
++  - キーボード操作。
++  - BY-SA を除くモードで自動停止。
++  - 自分の音を5形式で読み込み、画像を設定、サンプラーチャンネルで鳴る。
++  - マスター EQ を全部キルすると出音が消え、戻すと鳴る。
++  - トラックの再生、WAV・AIFF 24-bit の書き出し（ヘッダーと読み戻し）、出音の録音、マイク録音（擬似デバイス）。
++  - タイルからリール（自律演奏なし・写真のクレジット・共有の画面）、copy credits、テンプレート8種の描画。
++  - プランの表示。
++  - 英語表示で未翻訳0。横のはみ出し0。コンソールのエラー0。
++- 公開ページを実際のブラウザ（オーナーの Mac の Claude デスクトップアプリのブラウザ・Chromium 系）で確認した：
++  - 写真38枚がすべて表示された。
++  - タップで再生し、波形が出た。BY-SA のタイルが薄くなった。
++  - 写真のタイルだけで 30秒・MP4（H.264/AAC・1080×1920）を書き出した（9.8MB）。キャンバスは写真を描いても書き出し可能（CORS で汚れない）。
++
++## 4. iPhone Safari
++- **実機では未検証**。この環境には iPhone も WebKit もない。
++- 想定と注意：
++  - 書き出しは iOS Safari の MediaRecorder（MP4）を使う。
++  - 共有は navigator.share（ファイル）で「ビデオを保存」が選べる見込み。
++  - 長押しで iOS の文脈メニューが出ないよう、-webkit-touch-callout を止めている。
++  - AIFF は Safari なら標準で読める。
++  - マイクの重ね録りの遅れは補正していない。
++
++## 5. 生成したファイル
++- リール動画：saww_reel_v043_forest_30s.mp4（30秒・1080×1920・H.264/AAC・9.8MB）。
++  - 音：ウグイス、竹林の小川、アブラゼミ、ホトトギス。
++  - 写真：ウグイス（Ken Ishigaki・CC BY 2.0）、アブラゼミ（Armchair Ace・CC BY 3.0）、ホトトギス（christoph_moning・CC BY 4.0）。
++  - この動画は写真を暗くする不具合を直す前に録ったもので、直した版では写真がより明るく出る。
++- ミックスダウン（WAV・AIFF 24-bit）は、テストの中で書き出せることを確認した。
++
++## 6. 未完成・制約
++- 写真：
++  - Commons から表示時に直接読み込むため、オフラインでは写真なしの図になる。手元の複製は未作成。
++  - 写真があるのは32種（全127録音のうち38録音）。
++- タイムライン編集（クリップの切り貼り）、オートメーション、テンポ同期、MIDI、プロジェクト保存、ライブのシーン切り替え：未実装。
++- トラックのミックスダウンにはミキサーの EQ・FX が入らない。
++- 課金・ログイン・権利のサーバー確認：設計のみ（docs/PRODUCT_TIERS.md）。オーナーの承認が必要。
++- リールの描画は、録画中は端末の負荷で 20〜45fps に下がることがある（1080×1920 の H.264 をブラウザで同時に圧縮するため）。
++- VCSL の楽器の追加（33サンプル）：未着手。
++
++## 7. 次の優先作業
++1. iPhone Safari の実機確認（再生・タイル操作・リール書き出し・共有）。
++2. 写真を音源リポジトリに複製し、オフラインでも同じ表示にする。
++3. 本体リポジトリへの書き込み権限の回復。それまでは音源リポジトリの公開を続ける。
++4. 写真の追加（属・科の写真は付けない方針のまま、学名のある録音を増やす）。
++5. プロジェクトの保存（IndexedDB）、MIDI（Web MIDI）、タイムライン。
+diff --git a/docs/AUTOMATION_LOG.md b/docs/AUTOMATION_LOG.md
+index 6946560..89ad405 100644
+--- a/docs/AUTOMATION_LOG.md
++++ b/docs/AUTOMATION_LOG.md
+@@ -172,3 +172,9 @@ C. **合成音の置き換えの準備**（LIBRARY_300_PLAN 3）：合成の楽
+   - 音源の候補調査（定常タスク）は今回は行っていない。
+   - 次の候補：M5（パッド・ミキサー・エフェクトの設定をプリセットに保存、Web MIDI）。並行して A（UI 再設計）。**プッシュには Claude の GitHub アプリが組織 sawwaudio に入っていて、定期実行のセッションに sawwaudio/audio-ecosystem が許可されている必要がある。**
+ （ここに追記）
++
++## 2026-11-06 v0.43（チャット）
++- v0.35〜v0.42（本体未反映のパッチ）をまとめて当て、v0.43 を追加した。内容は写真で選ぶ音（127録音のタイル、写真32種）、マスター EQ、リール作成（テンプレート8種・区画パネル・写真・共有）、トラック（録音・WAV/AIFF 24-bit）、FREE/PRO 区分（課金なし）、名称を saww audio ecosystem に統一。
++- 公開先：本体に書き込めないため、音源リポジトリの index.html（https://sawwaudio.github.io/audio-ecosystem-sounds-1/）に置いた。
++- 本体へのパッチ：音源リポジトリの transfer/v0.35-v0.43_series.patch（306830d に11コミット）。
++- テスト20本すべて合格。iPhone 実機は未検証。
 diff --git a/docs/PRODUCT_TIERS.md b/docs/PRODUCT_TIERS.md
 new file mode 100644
 index 0000000..068be43
@@ -19363,7 +19579,7 @@ index 0000000..068be43
 +
 +計測はまだ入れていない。入れる前に、プライバシーの方針を画面に載せる。
 diff --git a/index.html b/index.html
-index adba9ce..94fe734 100644
+index adba9ce..f666855 100644
 --- a/index.html
 +++ b/index.html
 @@ -1,13 +1,86 @@
@@ -19734,7 +19950,7 @@ index adba9ce..94fe734 100644
    $('reelCreditsSummary').textContent='このリールのクレジット：素材'+entries.length+'件（帰属表示が必要 '+req+'件）';$('reelCreditsText').textContent=text;$('reelCredits').hidden=false;
    $('reelStatus').textContent=st.duration.toFixed(1)+' SEC · SAVED';
    reelMsg(['リール動画を書き出しました（'+ext.toUpperCase()+'・'+(blob.size/1024/1024).toFixed(1)+' MB）。',...(sa?['BY-SA の素材が'+sa+'件含まれています。このリールは公開しないでください。']:[])])}
-@@ -1362,6 +1442,412 @@ $('dbExport').onclick=()=>{const rows=[['No','状態','対象','学名','日本
+@@ -1362,6 +1442,413 @@ $('dbExport').onclick=()=>{const rows=[['No','状態','対象','学名','日本
  window.__previewDebug={play:previewSpecies,stop:stopPreview,state:()=>({id:previewVoice?.id||null,time:nativePreview.currentTime,paused:nativePreview.paused,error:nativePreview.error?.code||null})};
  window.__bioDebug={ecosystem,history:()=>bioHistory.slice(),candidatePool,chooseBio,resetBioSequence,ecosystemTick:residentTick,residentDue,loadOne,setScene,recordings,signal:()=>{const a=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(a);return {peak:Math.max(...a.map(Math.abs)),rms:Math.sqrt(a.reduce((n,v)=>n+v*v,0)/a.length)}},playSpecies,loadEmbedded,stopBioVoices,settings:speciesSettings,stats:()=>({active:activeBio.size,pending:loadingBio.size,highWater:bioHighWater,pcmBudget:PCM_BUDGET,pcmHighWater,buffers:speciesBuffers.size,pcmBytes:[...speciesBuffers.values()].reduce((n,b)=>n+b.length*b.numberOfChannels*4,0),recordings:recordings.length,profiles:Object.values(speciesDefinitions).flat().length}),decoded:()=>[...speciesBuffers].map(([id,b])=>({id,duration:b.duration,channels:b.numberOfChannels,sampleRate:b.sampleRate,source:bufferSources.get(id)||null}))};
  buildMixer();buildFx();buildSampler();requestAnimationFrame(mixPaint);$('performance').after($('bioSection'));$('bioSection').after($('fieldSection'));p.insects=55;renderBio();chordUI();syncUI();syncEcosystem();requestAnimationFrame(paint);window.__audioEcosystemDebug={getState:()=>({playing,quality,transientSources,events,voiceLimitHits,sourceHighWater,droneGroups:droneGroups.length,layerCount:Object.entries(groups).filter(([k])=>k!=='master').reduce((n,[,v])=>n+v.length,0),auditionKey,morphCount,weatherMorphs,weather:{...weather},chord:chords[chordIndex].name,audioState:ctx?.state||'none'}),triggerVoice:(k)=>{if(!ctx||!playing)return false;if(!Object.prototype.hasOwnProperty.call(p,k))return false;trigger(k,ctx.currentTime+.04);return true},exportData,applyData,phaseAt:(s)=>Math.floor((s%1800)/300),startRecord,stopRecord,attribution:()=>({used:[...recordUsed.values()],last:lastRecordCredits,library:attributionText(attributionEntries([...recordings.map(r=>({kind:'recording',id:r.id,origin:'embedded'})),...instrumentSamples.map(s=>({kind:'instrument',id:s.id,origin:'embedded'}))]),{scope:'library'})}),recordingState:()=>({recording,recordStopPending,recordFrames,recordWorkletReady}),encodeWav};
@@ -19777,7 +19993,8 @@ index adba9ce..94fe734 100644
 +function chanOf(id){if(userSounds.has(id))return 'sampler';const r=recordings.find(x=>x.id===id);return r&&r.kind==='landscape'?'field':'bio'}
 +function nameOf(id){const u=userSounds.get(id);if(u)return u.name;const r=recordings.find(x=>x.id===id);return r?r.jp:id}
 +function playingIds(){return [...tileState.values()].filter(s=>s.voice).map(s=>s.id)}
-+function ampOf(id){const u=userSounds.get(id);if(u)return u.amp;const r=recordings.find(x=>x.id===id);return .5*(bufferGains.get(id)??r?.performanceGain??1)}
++// タイルは1つずつ聞くことが多いので、自律演奏の1声（×0.5）より 6dB 大きく鳴らす（全体はマスターのリミッターで守る）
++function ampOf(id){const u=userSounds.get(id);if(u)return u.amp;const r=recordings.find(x=>x.id===id);return 1*(bufferGains.get(id)??r?.performanceGain??1)}
 +function creditKeysOf(id){const u=userSounds.get(id);return u?[...(u.credits||[])]:[]}
 +function noteTile(id,fn){fn('recording',id);for(const k of creditKeysOf(id)){const [kind,...rest]=k.split(':');fn(kind,rest.join(':'))}}
 +async function bufferOf(id){const u=userSounds.get(id);if(u)return u.buffer;return loadOne(id)}
@@ -19885,7 +20102,7 @@ index adba9ce..94fe734 100644
 +function uniqueId(prefix,name){let id=prefix+':'+name,n=2;while(userSounds.has(id))id=prefix+':'+name+' ('+(n++)+')';return id}
 +function rmsOf(b){let q=0,n=0;const step=Math.max(1,Math.floor(b.length/400000));for(let c=0;c<b.numberOfChannels;c++){const d=b.getChannelData(c);for(let i=0;i<d.length;i+=step){q+=d[i]*d[i];n++}}return Math.sqrt(q/Math.max(1,n))}
 +function addUserSound(name,buffer,origin,extra={}){const id=uniqueId(origin==='mic'?'mic':origin==='bounce'?'bounce':'import',name);const rms=rmsOf(buffer);
-+ userSounds.set(id,{id,name,file:extra.file||name,buffer,origin,img:null,amp:clamp(.035/Math.max(1e-5,rms),.05,6)*.5,credits:extra.credits||new Set()});bufferOrigins.set(id,'import');return id}
++ userSounds.set(id,{id,name,file:extra.file||name,buffer,origin,img:null,amp:clamp(.035/Math.max(1e-5,rms),.05,6),credits:extra.credits||new Set()});bufferOrigins.set(id,'import');return id}
 +// AIFF（非圧縮 PCM）の読み込み。Chrome は decodeAudioData で AIFF を読めないため自前で読む。AIFC の圧縮形式は扱わない。
 +function parseAiff(ab){const v=new DataView(ab);const s4=o=>String.fromCharCode(v.getUint8(o),v.getUint8(o+1),v.getUint8(o+2),v.getUint8(o+3));
 + if(s4(0)!=='FORM'||!/^AIF[FC]$/.test(s4(8)))return null;let o=12,ch=0,frames=0,bits=0,sr=0,data=-1,comp='NONE';
@@ -19922,7 +20139,7 @@ index adba9ce..94fe734 100644
 + try{await smpEnsureCtx();t.buffer=await bufferOf(src);if(!userSounds.has(src)&&!rightsAllowed(src)){tracks.splice(tracks.indexOf(t),1);status(L('商用モードの対象外の録音はトラックに入れません。','Recordings excluded by the commercial mode cannot be added.'))}}
 + catch(e){tracks.splice(tracks.indexOf(t),1);trkStatus(L('読み込みに失敗しました: ','Loading failed: ')+(e.message||e.name))}renderTracks()}
 +function trkDest(t){return t.dest==='master'?master._lim:mixLane('sampler')}
-+function trkSchedule(t0){for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const src=ctx.createBufferSource(),g=G(t.vol*ampOf(t.src)*2),pan=ctx.createStereoPanner?ctx.createStereoPanner():G(1);
++function trkSchedule(t0){for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const src=ctx.createBufferSource(),g=G(t.vol*ampOf(t.src)),pan=ctx.createStereoPanner?ctx.createStereoPanner():G(1);
 +  src.buffer=t.buffer;if(pan.pan)pan.pan.value=t.pan;src.connect(g);g.connect(pan);pan.connect(trkDest(t));const at=Math.max(ctx.currentTime,t0+t.offset);src.start(at);const v={src,g,pan,t};trk.voices.add(v);src.onended=()=>{trk.voices.delete(v);try{pan.disconnect()}catch(e){}};
 +  noteTile(t.src,noteRecUse)}}
 +async function trkPlay(){if(!tracks.some(t=>t.buffer)){trkStatus(L('トラックがありません。','No tracks yet.'));return}await smpEnsureCtx();trkStop(true);trk.playing=true;const len=trackLen();trk.t0=ctx.currentTime+.08;trkSchedule(trk.t0);
@@ -19947,7 +20164,7 @@ index adba9ce..94fe734 100644
 + const label=r.kind==='mic'?L('マイク録音 ','Mic take ')+(1+[...userSounds.values()].filter(u=>u.origin==='mic').length):L('出音の録音 ','Output take ')+(1+[...userSounds.values()].filter(u=>u.origin==='bounce').length);
 + const id=addUserSound(label,b,r.kind,{credits:r.credits});addTrack(id);buildTiles();renderTrackSources();renderTransport();trkStatus(L(label+' をトラックと「自分の音」に追加しました（'+b.duration.toFixed(1)+'秒）。',label+' added to tracks and “My sounds” ('+b.duration.toFixed(1)+' s).'))}
 +async function trkMixdown(fmt){const len=trackLen();if(!len){trkStatus(L('トラックがありません。','No tracks yet.'));return}const sr=ctx?ctx.sampleRate:48000,oc=new OfflineAudioContext(2,Math.ceil(len*sr),sr),used=new Set();
-+ for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const s=oc.createBufferSource(),g=oc.createGain(),p=oc.createStereoPanner();s.buffer=t.buffer;g.gain.value=t.vol*ampOf(t.src)*2;p.pan.value=t.pan;s.connect(g);g.connect(p);p.connect(oc.destination);s.start(t.offset);noteTile(t.src,(k,i)=>used.add(k+'|'+i))}
++ for(const t of tracks){if(!audible(t))continue;if(!userSounds.has(t.src)&&!rightsAllowed(t.src))continue;const s=oc.createBufferSource(),g=oc.createGain(),p=oc.createStereoPanner();s.buffer=t.buffer;g.gain.value=t.vol*ampOf(t.src);p.pan.value=t.pan;s.connect(g);g.connect(p);p.connect(oc.destination);s.start(t.offset);noteTile(t.src,(k,i)=>used.add(k+'|'+i))}
 + const out=await oc.startRendering();let peak=0;for(let c=0;c<2;c++){const d=out.getChannelData(c);for(let i=0;i<d.length;i++)peak=Math.max(peak,Math.abs(d[i]))}const norm=peak>.98?.98/peak:1;
 + const bytes=fmt==='aiff'?encodeAiff24(out,norm):encodeWav24(out,norm),stamp=new Date().toISOString().replace(/[:.]/g,'-'),name='saww_audio_ecosystem_mix_'+stamp+'.'+(fmt==='aiff'?'aif':'wav');
 + downloadBlob(new Blob([bytes],{type:fmt==='aiff'?'audio/aiff':'audio/wav'}),name);
@@ -19974,7 +20191,7 @@ index adba9ce..94fe734 100644
 +function renderTracks(){const box=$('trkList');if(!box)return;box.textContent='';if(!tracks.length){box.append(el('p',{class:'micro',text:L('トラックはまだありません。下で音を選んで追加するか、録音してください。','No tracks yet. Add a sound below or record one.')}));renderTransport();return}
 + for(const t of tracks){const name=nameOf(t.src);const row=el('div',{class:'trkRow','data-trk':String(t.id)});
 +  const ctl=(lab,input,out)=>el('label',{class:'trkCtl'},el('span',{text:lab}),input,out||null);
-+  const vol=el('input',{type:'range',min:'0',max:'150',value:String(Math.round(t.vol*100)),'aria-label':name+'の音量'}),volO=el('output',{text:String(Math.round(t.vol*100))});vol.oninput=()=>{t.vol=vol.value/100;volO.textContent=vol.value;for(const v of trk.voices)if(v.t===t)v.g.gain.setTargetAtTime(t.vol*ampOf(t.src)*2,ctx.currentTime,.03)};
++  const vol=el('input',{type:'range',min:'0',max:'150',value:String(Math.round(t.vol*100)),'aria-label':name+'の音量'}),volO=el('output',{text:String(Math.round(t.vol*100))});vol.oninput=()=>{t.vol=vol.value/100;volO.textContent=vol.value;for(const v of trk.voices)if(v.t===t)v.g.gain.setTargetAtTime(t.vol*ampOf(t.src),ctx.currentTime,.03)};
 +  const pan=el('input',{type:'range',min:'-100',max:'100',value:String(Math.round(t.pan*100)),'aria-label':name+'の定位'});pan.oninput=()=>{t.pan=pan.value/100;for(const v of trk.voices)if(v.t===t&&v.pan.pan)v.pan.pan.setTargetAtTime(t.pan,ctx.currentTime,.03)};
 +  const off=el('input',{type:'number',min:'0',max:'600',step:'0.1',value:String(t.offset),inputmode:'decimal','aria-label':name+'の開始位置（秒）'});off.onchange=()=>{t.offset=clamp(+off.value||0,0,600);renderTransport()};
 +  const mute=el('button',{type:'button','aria-pressed':String(t.mute),text:'M','aria-label':name+' ミュート'});mute.onclick=()=>{t.mute=!t.mute;renderTracks()};
@@ -20014,7 +20231,7 @@ index adba9ce..94fe734 100644
 +function band(f0,f1){if(!A.freq)return 0;const N=A.freq.length,ny=ctx.sampleRate/2,i0=Math.max(1,Math.round(f0/ny*N)),i1=Math.max(i0,Math.min(N-1,Math.round(f1/ny*N)));let s=0;for(let i=i0;i<=i1;i++)s+=A.freq[i];return s/(i1-i0+1)/255}
 +const MONO='ui-monospace,"SF Mono",Menlo,monospace',SANS='"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
 +function txt(c,s,x,y,font,color,align='left',maxW=9999){c.font=font;c.fillStyle=color;c.textAlign=align;c.fillText(reelFit(c,String(s),maxW),x,y)}
-+function frame(c,x,y,w,h,num,label,val){const P=reelPal;c.fillStyle=P.panel;c.fillRect(x,y,w,h);c.strokeStyle=P.line;c.lineWidth=1.5;c.strokeRect(x+.5,y+.5,w-1,h-1);
++function frame(c,x,y,w,h,num,label,val,clear){const P=reelPal;if(!clear){c.fillStyle=P.panel;c.fillRect(x,y,w,h)}c.strokeStyle=P.line;c.lineWidth=1.5;c.strokeRect(x+.5,y+.5,w-1,h-1);
 + c.strokeStyle=P.acc;c.lineWidth=2;const k=14;for(const [cx,cy,dx,dy] of [[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]]){c.beginPath();c.moveTo(cx+dx*k,cy);c.lineTo(cx,cy);c.lineTo(cx,cy+dy*k);c.stroke()}
 + txt(c,num+'  '+label,x+16,y+30,'600 18px '+MONO,P.dim);const lw=c.measureText(num+'  '+label).width,rx=Math.min(x+w-16,REEL_SAFE.x1);if(val)txt(c,val,rx,y+30,'18px '+MONO,P.acc,'right',Math.max(40,rx-(x+16+lw+18)))}
 +function cover(c,img,x,y,w,h,zoom){const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;if(!iw||!ih)return;const s=Math.max(w/iw,h/ih)*zoom,dw=iw*s,dh=ih*s;c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);c.restore()}
@@ -20032,12 +20249,12 @@ index adba9ce..94fe734 100644
 + c.strokeStyle=P.line;c.globalAlpha=.35;c.lineWidth=1;for(let x=40;x<REEL_W;x+=80){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,REEL_H);c.stroke()}for(let y=0;y<REEL_H;y+=80){c.beginPath();c.moveTo(0,y+.5);c.lineTo(REEL_W,y+.5);c.stroke()}c.globalAlpha=1;
 + header(c,t);const id=reelSubject(),r=id&&recordings.find(x=>x.id===id),u=id&&userSounds.get(id),m=(id&&wildMeta[id])||{};
 + // 01 写真
-+ {const x=40,y=336,w=600,h=660;const ph=subjectPhoto(id);c.fillStyle=P.panel;c.fillRect(x,y,w,h);
++ {const x=40,y=336,w=600,h=660;const ph=subjectPhoto(id);c.fillStyle=ph&&ph.e.ok?'#000':P.panel;c.fillRect(x,y,w,h);
 +  if(ph&&ph.e.ok){cover(c,ph.e.img,x,y,w,h,1.02+.05*((t/14)%1));notePhoto(ph)}else{// 統一プレースホルダー：音で揺れる等高線
 +   const cx=x+w/2,cy=y+h/2-40;c.lineWidth=1.4;for(let i=0;i<9;i++){c.beginPath();for(let k=0;k<=64;k++){const a=k/64*6.2832,v=A.freq?A.freq[2+((k*7+i*13)%60)]/255:0,rr=40+i*26+Math.sin(a*3+i+t*.4)*6+v*22;k?c.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr):c.moveTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}c.closePath();c.strokeStyle='hsla('+P.hue+',45%,'+(72-i*5)+'%,'+(.6-i*.05).toFixed(2)+')';c.stroke()}
 +   txt(c,id?(u?'MY SOUND':'FIELD RECORDING · NO PHOTO'):'TAP A PHOTO TO PLAY',cx,y+h-170,'600 20px '+MONO,P.dim,'center')}
 +  const g=c.createLinearGradient(0,y+h-260,0,y+h);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.78)');c.fillStyle=g;c.fillRect(x,y+h-260,w,260);
-+  frame(c,x,y,w,h,'01','SPECIMEN',r?rightsTierOf(r.license)+'-TIER':u?'U-TIER':'');
++  frame(c,x,y,w,h,'01','SPECIMEN',r?rightsTierOf(r.license)+'-TIER':u?'U-TIER':'',true);
 +  if(id){const latin=r?binomial(r.latin)||'':'';txt(c,nameOf(id),x+24,y+h-118,'700 54px '+SANS,'#ffffff','left',w-48);let yy=y+h-78;
 +   if(m.en||latin){c.font='500 26px '+SANS;const en=m.en||'';const ew=en?c.measureText(en+'  ').width:0;if(en)txt(c,en+'  ',x+24,yy,'500 26px '+SANS,'#e2ece6','left',w-48);if(latin)txt(c,latin,x+24+ew,yy,'italic 26px Georgia,"Times New Roman",serif','#d0ddd6','left',w-48-ew);yy+=34}
 +   txt(c,r?'REC  '+(r.location||'—'):(u?(u.origin==='mic'?'MIC RECORDING':'USER AUDIO'):''),x+24,yy,'20px '+SANS,'#c8d6cf','left',w-48)}
@@ -20147,7 +20364,7 @@ index adba9ce..94fe734 100644
  })();
  
  </script>
-@@ -1461,6 +1947,9 @@ const EXACT={
+@@ -1461,6 +1948,9 @@ const EXACT={
  '複数種（原典の英名：spring peepers・American toads）':'Multiple species (source: spring peepers, American toads)','複数種（種名の記載なし）':'Multiple species (not named)','複数種（近くのナイチンゲールを含む。原典記載）':'Multiple species (incl. a nearby nightingale, per source)','複数種（遠くのカッコウを含む。原典記載）':'Multiple species (incl. a distant cuckoo, per source)',
  '複数種：Great Spotted Woodpecker・Song Thrush・Mistle Thrush 等（原典の英名）':'Multiple species: Great Spotted Woodpecker, Song Thrush, Mistle Thrush etc. (source names)','複数種：Strix aluco（原典は “tawny owl, chouette hulotte”）とキツネ（種名記載なし）':'Multiple species: Strix aluco (source: “tawny owl, chouette hulotte”) and a fox (species not stated)','複数種：ザトウクジラ・シャチ（原典の英名）':'Multiple species: humpback whales and orcas (source names)',
  'アイスランド':'Iceland','アイルランド':'Ireland','オーストラリア':'Australia','ギリシャ':'Greece','スペイン':'Spain','チリ':'Chile','ニュージーランド':'New Zealand','ノルウェー':'Norway','フランス（仏領ギアナ）':'France (French Guiana)','ブラジル':'Brazil','ベリーズ':'Belize','ベルギー':'Belgium','ポーランド':'Poland','マレーシア':'Malaysia','メキシコ':'Mexico','中国（香港）':'China (Hong Kong)',
@@ -20157,7 +20374,7 @@ index adba9ce..94fe734 100644
  // プリセットの商用モード・区分（v0.30）
  '不正な商用モード':'Invalid commercial mode',
  // 区分バッジ（v0.29）
-@@ -1557,6 +2046,9 @@ const RULES=[
+@@ -1557,6 +2047,9 @@ const RULES=[
   [/^([^＋·—/]+)（(伊豆|兵庫)）$/,m=>NAMES[m[0]]?NAMES[m[0]]:tr(m[1])+' ('+(m[2]==='伊豆'?'Izu':'Hyōgo')+')'],
   [/^記載なし（原典は (“.+”)(?: のみ)?）$/,m=>'Not stated (source: '+m[1]+')'],
   [/^([A-Z][a-z]+ (?:sp\.|[a-z]+))（原典は (“.+”)(?: のみ)?）$/,m=>m[1]+' (source: '+m[2]+')'],
