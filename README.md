@@ -1,6 +1,6 @@
 # saww audio ecosystem — 音源リポジトリ 1
 
-**最新版のアプリ（v0.47・試用）：https://sawwaudio.github.io/audio-ecosystem-sounds-1/**
+**最新版のアプリ（v0.48・試用）：https://sawwaudio.github.io/audio-ecosystem-sounds-1/**
 本体の公開サイト（https://sawwaudio.github.io/audio-ecosystem/）は、本体リポジトリに書き込めるようになるまで古い版（v0.34）のままです。それまでの間、このリポジトリの `index.html` に最新版を置いています（`build/deploy_sounds_site.py` で作成。本体にある41録音と楽器は本体の公開サイトから読み込みます。v0.45 で足した VCSL の楽器37ファイルは、このリポジトリの `instruments/` に置いています）。
 
 [saww audio ecosystem](https://sawwaudio.github.io/audio-ecosystem-sounds-1/)（自然界の実録音で演奏する仮想楽器）が読み込む音源の置き場所です。本体（sawwaudio/audio-ecosystem）の容量を抑えるため、v0.37 から音源を別のリポジトリに分けています。本体からは同じ sawwaudio.github.io の `../audio-ecosystem-sounds-1/` として読み込みます。
