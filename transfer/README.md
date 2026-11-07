@@ -1,7 +1,7 @@
 # 本体へ反映するためのパッチ（作業用）
 このチャットのセッションと自動実行は本体 sawwaudio/audio-ecosystem に書き込めない（403）ため、ここに置いている。
 
-## いちばん新しいもの（v0.49 まで）
+## いちばん新しいもの（v0.52 まで）
 本体の main（306830d）に、次の順で当てる。
 
 ```
@@ -18,6 +18,7 @@ cp <このリポジトリ>/instruments/pcm/vcsl_{Mbira6,Marimba,TB_hit,glock}*.f
 cp <このリポジトリ>/instruments/compat/{kalimba,marimba,tubularBells,glockenspiel}-*.mp3 instruments/compat/
 git add instruments && git commit -m "v0.49：VCSL（CC0）の旋律楽器の実録音 40ファイル"
 git am -3 --keep-cr v0.49_series.patch            # v0.49（ロゴ・タブ・音量と休み・鳴っている音の一覧・イラスト・楽器と合成音の整理・密度・旋律4種）
+git am -3 --keep-cr v0.50-v0.52_series.patch      # v0.50（MIDI 相対エンコーダー）、v0.51（合成音を鳴らさない）、v0.52（層の設定をプリセットに）と記録、6コミット
 ```
 
 - 入っている内容：v0.35〜v0.43 に加え、v0.46（Web MIDI）、v0.47（ポップな配色・書体・リール「ポップ」）、v0.48（リール「自然」・写真から色・明朝・生き物と環境音の分類）、v0.44（ミキサー等の設定をプリセットに保存）と v0.45（並び順・重複の解消・説明の畳み込み・再生バー、フルート・ハーモニクスの削除、実録音の低音6種・打撃5種）。
