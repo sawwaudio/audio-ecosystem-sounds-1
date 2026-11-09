@@ -2673,7 +2673,7 @@ const STUDIO_STORAGE = 'saww.studioSession';
 let studioUntil = 0;
 const ENTITLEMENT={
  subscription:LIVE?'free':'beta', enforce:LIVE, exp:0, pe:0,
- get plan(){return studioUntil>Date.now()/1000?'admin':this.subscription},
+ get plan(){return deviceActive||studioUntil>Date.now()/1000?'admin':this.subscription},
  set plan(value){this.subscription=value}
 };
 window.sawwEntitlement={get plan(){return ENTITLEMENT.plan},get enforce(){return ENTITLEMENT.enforce},allows:f=>ENTITLEMENT.plan!=='free'||(TIERS.features.find(x=>x.id===f)||{}).tier!=='pro',tierOf:f=>(TIERS.features.find(x=>x.id===f)||{}).tier||'free'};
@@ -2684,6 +2684,100 @@ async function verifyPro(tok){try{const [h,pl,sg]=String(tok||'').split('.');if(
  if(!(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,b64uBytes(sg),new TextEncoder().encode(h+'.'+pl))))return null;
  const d=JSON.parse(new TextDecoder().decode(b64uBytes(pl)));return d&&d.plan==='pro'?{...d,exp:Math.min(d.pe,d.exp)}:null}catch(e){return null}}
 function setPlan(plan,d){ENTITLEMENT.plan=plan;ENTITLEMENT.exp=d?d.exp:0;ENTITLEMENT.pe=d?d.pe:0;applyInstrTier();applyProLocks();renderAccount()}
+const DEVICE_CERT = 'saww.studioDevice.v1';
+const DEVICE_DB = 'saww-studio-device';
+let deviceActive = false, deviceStatus = '', pairingCode = '', deviceEpoch = 0;
+const deviceSetup = new URLSearchParams(location.search).get('setup')==='device';
+const encodeDeviceBytes = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+function deviceStore(){
+ return new Promise((resolve,reject)=>{
+  const open=indexedDB.open(DEVICE_DB,1);
+  open.onupgradeneeded=()=>open.result.createObjectStore('keys');
+  open.onsuccess=()=>resolve(open.result);open.onerror=()=>reject(open.error);
+ });
+}
+async function browserIdentity(create=false){
+ const db=await deviceStore();
+ // Generate before entering the transaction so two simultaneous tabs keep the first key.
+ try{
+  const candidate=create?await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']):null;
+  return await new Promise((resolve,reject)=>{
+   const tx=db.transaction('keys',create?'readwrite':'readonly'),store=tx.objectStore('keys');
+   let pair;
+   const read=store.get('owner');
+   read.onsuccess=()=>{pair=read.result||candidate;if(!read.result&&candidate)store.put(candidate,'owner')};
+   tx.oncomplete=()=>resolve(pair);tx.onabort=()=>reject(tx.error||Error('storage'));
+  });
+ }finally{db.close()}
+}
+async function publicDeviceCode(pair){
+ return encodeDeviceBytes(await crypto.subtle.exportKey('raw',pair.publicKey));
+}
+async function verifiedDevice(cert){
+ if(!cert||cert.length>2100)return false;
+ const parts=cert.split('.');if(parts.length!==2)return false;
+ const ec={name:'ECDSA',namedCurve:'P-256'},algo={name:'ECDSA',hash:'SHA-256'};
+ const master=await crypto.subtle.importKey('jwk',STUDIO_PUBLIC_KEY,ec,false,['verify']);
+ if(!await crypto.subtle.verify(algo,master,b64uBytes(parts[1]),new TextEncoder().encode(parts[0])))return false;
+ const grant=JSON.parse(new TextDecoder().decode(b64uBytes(parts[0])));
+ if(grant.aud!==STUDIO_AUDIENCE||grant.role!=='studio-device'||typeof grant.key!=='string')return false;
+ const pair=await browserIdentity();
+ if(!pair||await publicDeviceCode(pair)!==grant.key)return false;
+ const challenge=crypto.getRandomValues(new Uint8Array(32));
+ const signature=await crypto.subtle.sign(algo,pair.privateKey,challenge);
+ const approved=await crypto.subtle.importKey('raw',b64uBytes(grant.key),ec,false,['verify']);
+ return crypto.subtle.verify(algo,approved,signature,challenge);
+}
+function refreshStudioView(){applyInstrTier();applyProLocks();renderAccount()}
+function focusStudio(){const section=$('plansSection');for(let n=section;n;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;$('planAccount')?.scrollIntoView({block:'center'})}
+async function readDevice(cert,incoming=false){
+ const epoch=++deviceEpoch;
+ let ok=false;
+ try{ok=await verifiedDevice(cert)}catch{}
+ if(epoch!==deviceEpoch)return;
+ if(ok&&incoming){
+  try{localStorage.setItem(DEVICE_CERT,cert)}catch{ok=false}
+ }
+ if(!ok&&incoming){
+  deviceStatus=L('この登録リンクを、登録コードを発行したブラウザーで開いてください。','Open this approval link in the browser that generated the registration code.');
+  let saved='';try{saved=localStorage.getItem(DEVICE_CERT)}catch{}
+  if(saved&&saved!==cert)return readDevice(saved);
+ }
+ deviceActive=ok;refreshStudioView();
+}
+async function removeDevice(){
+ try{
+  const db=await deviceStore();
+  try{await new Promise((resolve,reject)=>{const tx=db.transaction('keys','readwrite');tx.objectStore('keys').delete('owner');tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})}finally{db.close()}
+  ++deviceEpoch;localStorage.removeItem(DEVICE_CERT);deviceActive=false;pairingCode='';deviceStatus='';finishStudio();
+ }catch{deviceStatus=L('登録を解除できませんでした。もう一度お試しください。','Could not remove the registration. Please try again.');renderAccount()}
+}
+window.addEventListener('storage',e=>{
+ if(e.key!==DEVICE_CERT&&e.key!==null)return;
+ if(!e.newValue){++deviceEpoch;deviceActive=false;finishStudio()}else readDevice(e.newValue);
+});
+async function initDevice(){
+ if(new URL('./',location.href).href!==STUDIO_AUDIENCE)return;
+ const automatic=location.hash.startsWith('#saww-register='),approved=location.hash.startsWith('#saww-device=');
+ const input=location.hash.slice(location.hash.indexOf('=')+1);
+ if(automatic||approved)history.replaceState(null,'',location.pathname+location.search+'#settingsGroup');
+ try{
+  if(automatic){
+   if(!/^[A-Za-z0-9_-]{43}$/.test(input))throw Error();
+   const pair=await browserIdentity(true);
+   location.replace('http://127.0.0.1:8769/finish-device#'+input+'.'+await publicDeviceCode(pair));
+   return;
+  }
+  let cert=approved?input:localStorage.getItem(DEVICE_CERT);
+  if(cert)await readDevice(cert,approved);
+  if(deviceSetup&&!deviceActive)pairingCode=await publicDeviceCode(await browserIdentity(true));
+ }catch{if(automatic||approved||deviceSetup)deviceStatus=L('端末を登録できませんでした。通常のブラウザーで開き直してください。','Open the registration page in your regular browser and try again.')}
+ if(automatic||approved||deviceSetup){refreshStudioView();focusStudio()}
+}
+
+window.addEventListener('hashchange',()=>{
+ if(location.hash.startsWith('#saww-register=')||location.hash.startsWith('#saww-device='))initDevice();
+});
 function finishStudio(){
  studioUntil=0;
  try{sessionStorage.removeItem(STUDIO_STORAGE)}catch(e){}
@@ -2731,6 +2825,7 @@ async function refreshPro(tok){try{const r=await fetch(BILL.apiBase.replace(/\/$
  const j=await r.json();if(j.plan==='pro'&&j.token)return adoptToken(j.token);if(j.plan==='free'||r.status===401){try{localStorage.removeItem(PRO_KEY)}catch(e){}setPlan('free');billMsg=L('PRO の期間が終わりました。','Your PRO period has ended.');renderAccount()}}catch(e){/* 電波がない時は証明の期限まで使う */}return false}
 async function initBilling(){if(!LIVE){applyProLocks();renderAccount();return}
  await initStudio();
+ await initDevice();
  const m=location.hash.match(/^#saww-(pro|billing)=([A-Za-z0-9._-]+)$/);
  if(m){history.replaceState(null,'',location.pathname+location.search);
   if(m[1]==='pro'){billMsg=(await adoptToken(m[2]))?L('PRO になりました。ありがとうございます。領収書は Stripe からメールで届きます。','You are now PRO. Thank you — Stripe emails your receipt.'):L('PRO の証明を確かめられませんでした。','The PRO proof could not be verified.')}
@@ -2764,11 +2859,18 @@ function termsBox(annual = false){const box=el('div',{class:'subTerms',id:'subTe
 function renderAccount(){const box=$('planAccount');if(!box)return;box.textContent='';
  if(!LIVE){box.append(el('p',{class:'micro',text:L('課金はまだ始めていません。テスト公開中は、すべての機能を無料で使えます。','Billing has not started. During the public test, every feature is free.')}));
   const pv=el('details',{class:'help subTermsPreview',id:'subTermsPreview'},el('summary',{text:L('PRO の定期購入の内容（販売を始めると、購入ボタンの上に出ます）','PRO subscription terms (shown above the buy button once sales start)')}));pv.append(termsBox());box.append(pv);return}
+ if(deviceStatus)box.append(el('p',{role:'status',text:deviceStatus}));
+ if(deviceSetup&&pairingCode&&!deviceActive){
+  const panel=el('div',{id:'deviceSetup'}),code=el('input',{readOnly:true,type:'text','aria-label':L('登録コード','Registration code')});code.value=pairingCode;
+  const copy=el('button',{type:'button',text:L('登録コードをコピー','Copy registration code')});
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(code.value);copy.textContent=L('コピーしました','Copied')}catch{code.select()}};
+  panel.append(el('strong',{text:L('このブラウザーを管理者端末に登録','Register this browser')}),el('p',{text:L('Macの投稿管理で「ほかの端末を登録」を開き、このコードを貼って承認してください。届いた承認リンクは、このブラウザーで開きます。','Approve this code in the Mac posting dashboard, then open the approval link in this browser.')}),code,copy);box.append(panel);
+ }
  if(ENTITLEMENT.plan==='admin'){
   box.append(el('strong',{class:'planStatus',id:'studioAdminStatus',text:L('管理者 · PRO機能を利用できます','Administrator · PRO features enabled')}),
-   el('p',{class:'micro',text:L('このMacの管理者としてログイン中です。管理者アクセスは無料です。','Signed in from the owner’s Mac. Administrator access is free.')}));
-  const out=el('button',{type:'button',id:'studioLogout',text:L('管理者モードを終了','End administrator session')});
-  out.addEventListener('click',finishStudio);box.append(out);return
+   el('p',{class:'micro',text:deviceActive?L('登録済みのブラウザーです。次回から通常のリンクでも管理者として開きます。','This browser is registered. Open any SAE link to return as administrator.'):L('このMacの管理者としてログイン中です。管理者アクセスは無料です。','Signed in from the owner’s Mac. Administrator access is free.')}));
+  const out=el('button',{type:'button',id:'studioLogout',text:deviceActive?L('このブラウザーの管理者登録を解除','Remove this browser’s registration'):L('管理者モードを終了','End administrator session')});
+  out.addEventListener('click',deviceActive?removeDevice:finishStudio);box.append(out);return
  }
  if(billMsg)box.append(el('p',{class:'billMsg',role:'status',text:billMsg}));
  if(ENTITLEMENT.plan==='pro'){const d=ENTITLEMENT.pe?new Date(ENTITLEMENT.pe*1000):null,ds=d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
