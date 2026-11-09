@@ -2667,7 +2667,15 @@ const LEGAL=(()=>{try{return JSON.parse($('ae-legal').textContent)}catch(e){retu
 const BILL=Object.assign({status:'test',paymentLink:'',portalLink:'',apiBase:'',publicKey:null},TIERS.checkout||{});
 try{if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){const o=JSON.parse(localStorage.getItem('saww.billingTest')||'null');if(o){const {legal,...b}=o;Object.assign(BILL,b);if(legal)Object.assign(LEGAL,legal)}}}catch(e){}
 const LIVE=BILL.status==='live'&&!!BILL.apiBase&&!!BILL.publicKey&&!!LEGAL.ready;
-const ENTITLEMENT={plan:LIVE?'free':'beta',enforce:LIVE,exp:0,pe:0};
+const STUDIO_PUBLIC_KEY = {"kty":"EC","crv":"P-256","x":"n9AJGHmG7scZ-sSMfgY60Q12HGtxBWAXGNnVGzi1ZsE","y":"_V3fn6OoOlvSlJxpX5I9bz2C-U-Ia7sKnFUtscsHNu4"};
+const STUDIO_AUDIENCE = 'https://sawwaudio.github.io/audio-ecosystem-sounds-1/';
+const STUDIO_STORAGE = 'saww.studioSession';
+let studioUntil = 0;
+const ENTITLEMENT={
+ subscription:LIVE?'free':'beta', enforce:LIVE, exp:0, pe:0,
+ get plan(){return studioUntil>Date.now()/1000?'admin':this.subscription},
+ set plan(value){this.subscription=value}
+};
 window.sawwEntitlement={get plan(){return ENTITLEMENT.plan},get enforce(){return ENTITLEMENT.enforce},allows:f=>ENTITLEMENT.plan!=='free'||(TIERS.features.find(x=>x.id===f)||{}).tier!=='pro',tierOf:f=>(TIERS.features.find(x=>x.id===f)||{}).tier||'free'};
 const PRO_KEY='saww.pro';let billMsg='';
 const b64uBytes=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
@@ -2676,8 +2684,42 @@ async function verifyPro(tok){try{const [h,pl,sg]=String(tok||'').split('.');if(
  if(!(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,b64uBytes(sg),new TextEncoder().encode(h+'.'+pl))))return null;
  const d=JSON.parse(new TextDecoder().decode(b64uBytes(pl)));return d&&d.plan==='pro'?{...d,exp:Math.min(d.pe,d.exp)}:null}catch(e){return null}}
 function setPlan(plan,d){ENTITLEMENT.plan=plan;ENTITLEMENT.exp=d?d.exp:0;ENTITLEMENT.pe=d?d.pe:0;applyInstrTier();applyProLocks();renderAccount()}
+function finishStudio(){
+ studioUntil=0;
+ try{sessionStorage.removeItem(STUDIO_STORAGE)}catch(e){}
+ applyInstrTier();applyProLocks();renderAccount();
+}
+async function verifyStudio(pass){
+ try{
+  if(new URL('./',location.href).href!==STUDIO_AUDIENCE)return 0;
+  const parts=pass.split('.');
+  if(parts.length!==2||pass.length>2048)return 0;
+  const [body,signature]=parts;
+  const key=await crypto.subtle.importKey('jwk',STUDIO_PUBLIC_KEY,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+  if(!await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,b64uBytes(signature),new TextEncoder().encode(body)))return 0;
+  const claims=JSON.parse(new TextDecoder().decode(b64uBytes(body))),now=Date.now()/1000;
+  if(claims.role!=='studio-admin'||claims.aud!==STUDIO_AUDIENCE||!Number.isSafeInteger(claims.exp)||!Number.isSafeInteger(claims.iat)||claims.iat>now+30||claims.exp<=now||claims.exp-claims.iat>3600||claims.exp<=claims.iat)return 0;
+  return claims.exp;
+ }catch(e){return 0}
+}
+async function initStudio(){
+ const prefix='#saww-admin=',incoming=location.hash.startsWith(prefix);
+ let pass=incoming?location.hash.slice(prefix.length):'';
+ if(incoming)history.replaceState(null,'',location.pathname+location.search+'#settingsGroup');
+ else try{pass=sessionStorage.getItem(STUDIO_STORAGE)||''}catch(e){}
+ if(!pass)return;
+ studioUntil=await verifyStudio(pass);
+ if(!studioUntil){finishStudio();return}
+ try{sessionStorage.setItem(STUDIO_STORAGE,pass)}catch(e){}
+ applyInstrTier();applyProLocks();renderAccount();
+ if(incoming){
+  const section=$('plansSection');if(section){for(let n=section;n;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true}
+  $('planAccount')?.scrollIntoView({block:'center'});
+ }
+}
 function checkProExpiry(){
- if(ENTITLEMENT.plan!=='pro'||Date.now()/1000<ENTITLEMENT.exp)return;
+ if(studioUntil && studioUntil<=Date.now()/1000)finishStudio();
+ if(ENTITLEMENT.subscription!=='pro'||Date.now()/1000<ENTITLEMENT.exp)return;
  setPlan('free');
  const token=localStorage.getItem(PRO_KEY);
  if(token)refreshPro(token);
@@ -2688,12 +2730,13 @@ async function adoptToken(tok){const d=await verifyPro(tok);if(!d||d.exp<=Date.n
 async function refreshPro(tok){try{const r=await fetch(BILL.apiBase.replace(/\/$/,'')+'/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})});
  const j=await r.json();if(j.plan==='pro'&&j.token)return adoptToken(j.token);if(j.plan==='free'||r.status===401){try{localStorage.removeItem(PRO_KEY)}catch(e){}setPlan('free');billMsg=L('PRO の期間が終わりました。','Your PRO period has ended.');renderAccount()}}catch(e){/* 電波がない時は証明の期限まで使う */}return false}
 async function initBilling(){if(!LIVE){applyProLocks();renderAccount();return}
+ await initStudio();
  const m=location.hash.match(/^#saww-(pro|billing)=([A-Za-z0-9._-]+)$/);
  if(m){history.replaceState(null,'',location.pathname+location.search);
   if(m[1]==='pro'){billMsg=(await adoptToken(m[2]))?L('PRO になりました。ありがとうございます。領収書は Stripe からメールで届きます。','You are now PRO. Thank you — Stripe emails your receipt.'):L('PRO の証明を確かめられませんでした。','The PRO proof could not be verified.')}
   else billMsg={pending:L('お支払いの確認がまだ終わっていません。少し待ってから「ログイン用のリンクを送る」をお使いください。','Payment is not confirmed yet. Please wait a moment, then use “Send sign-in link”.'),link:L('ログイン用のリンクが古いか、使用済みです。もう一度送ってください。','The sign-in link has expired or was used. Please request a new one.'),inactive:L('有効な PRO の契約が見つかりませんでした。','No active PRO subscription was found.'),error:L('お支払いの確認でエラーが起きました。','An error occurred while confirming the payment.')}[m[2]]||''}
  let tok=null;try{tok=localStorage.getItem(PRO_KEY)}catch(e){}
- if(ENTITLEMENT.plan!=='pro'&&tok){const d=await verifyPro(tok);const t=Date.now()/1000;
+ if(ENTITLEMENT.subscription!=='pro'&&tok){const d=await verifyPro(tok);const t=Date.now()/1000;
   if(d&&d.exp>t){setPlan('pro',d);if(d.exp-t<10*86400||t-d.iat>3*86400)refreshPro(tok)}else if(d)await refreshPro(tok);else{try{localStorage.removeItem(PRO_KEY)}catch(e){}}}
  applyProLocks();renderAccount()}
 // 無料のあいだ、PRO の欄（data-tier="pro"：ミキサー・サンプラー・トラックなど）は開けない
@@ -2721,6 +2764,12 @@ function termsBox(annual = false){const box=el('div',{class:'subTerms',id:'subTe
 function renderAccount(){const box=$('planAccount');if(!box)return;box.textContent='';
  if(!LIVE){box.append(el('p',{class:'micro',text:L('課金はまだ始めていません。テスト公開中は、すべての機能を無料で使えます。','Billing has not started. During the public test, every feature is free.')}));
   const pv=el('details',{class:'help subTermsPreview',id:'subTermsPreview'},el('summary',{text:L('PRO の定期購入の内容（販売を始めると、購入ボタンの上に出ます）','PRO subscription terms (shown above the buy button once sales start)')}));pv.append(termsBox());box.append(pv);return}
+ if(ENTITLEMENT.plan==='admin'){
+  box.append(el('strong',{class:'planStatus',id:'studioAdminStatus',text:L('管理者 · PRO機能を利用できます','Administrator · PRO features enabled')}),
+   el('p',{class:'micro',text:L('このMacの管理者としてログイン中です。管理者アクセスは無料です。','Signed in from the owner’s Mac. Administrator access is free.')}));
+  const out=el('button',{type:'button',id:'studioLogout',text:L('管理者モードを終了','End administrator session')});
+  out.addEventListener('click',finishStudio);box.append(out);return
+ }
  if(billMsg)box.append(el('p',{class:'billMsg',role:'status',text:billMsg}));
  if(ENTITLEMENT.plan==='pro'){const d=ENTITLEMENT.pe?new Date(ENTITLEMENT.pe*1000):null,ds=d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
   box.append(el('p',{class:'planStatus',text:L('PRO をご利用中です'+(ds?'（次の更新日：'+ds+'）':'')+'。','You are on PRO'+(ds?' (next renewal: '+ds+')':'')+'.')}));
@@ -2801,13 +2850,13 @@ function applyRecTier(){const free=ENTITLEMENT.plan==='free',changed=recTierPlan
  // 使えなくなった生き物は止める（自律演奏の参加中の声もフェードアウト）
  if(free){for(const v of [...fieldVoices])if(!recAllowed(v.id))stopFieldVoices(v.id);for(const id of playingIds())if(!recAllowed(id))tileStop(id,true);if(typeof activeBio!=='undefined'&&typeof fadeResident==='function')for(const id of [...activeBio.keys()])if(!recAllowed(id))fadeResident(id)}}
 function renderRecNote(){const free=ENTITLEMENT.plan==='free';if(!$('recTierNote')&&$('tileGrid'))$('tileGrid').before(el('p',{class:'micro recTierNote',id:'recTierNote',role:'note'}));
- const nc=FREE_REC.size,note=$('recTierNote');if(note)note.textContent=free?L('無料で使える音源は、生き物の声'+nc+'録音（各分類'+TIERS.recordings.perCategory+'録音）と環境音'+FREE_AMBIENCE.size+'録音です。','FREE includes '+nc+' wildlife recordings ('+TIERS.recordings.perCategory+' per group) and '+FREE_AMBIENCE.size+' ambience recordings.'):L('テスト公開中は全部の生き物が鳴ります。PRO の印は、正式公開後に PRO で鳴らせる生き物です。','During the public test every creature plays. Those marked PRO will need PRO after launch.');
+ const nc=FREE_REC.size,note=$('recTierNote');if(note)note.textContent=free?L('無料で使える音源は、生き物の声'+nc+'録音（各分類'+TIERS.recordings.perCategory+'録音）と環境音'+FREE_AMBIENCE.size+'録音です。','FREE includes '+nc+' wildlife recordings ('+TIERS.recordings.perCategory+' per group) and '+FREE_AMBIENCE.size+' ambience recordings.'):LIVE?L('すべての生き物と環境音を使えます。','All wildlife and ambience recordings are available.'):L('テスト公開中は全部の生き物が鳴ります。PRO の印は、正式公開後に PRO で鳴らせる生き物です。','During the public test every creature plays. Those marked PRO will need PRO after launch.');
 }
 function applyInstrTier(){for(const row of document.querySelectorAll('#instrBody .control[data-layer]')){const k=row.dataset.layer,pro=instrTier(k)==='pro',ok=instrAllowed(k),inp=row.querySelector('input');
   const lab=row.querySelector('label');if(lab&&pro&&!lab.querySelector('.proChip'))lab.append(el('span',{class:'proChip',text:'PRO',title:'PRO'}));
   row.classList.toggle('locked',!ok);if(inp){inp.disabled=!ok;if(!ok&&p[k]>0){p[k]=0;inp.value=0;inp.dispatchEvent(new Event('input'))}}}
  const n=document.querySelectorAll('#instrBody .control[data-layer]').length,nf=[...FREE_INSTR].filter(k=>$('param-'+k)).length,note=$('instrTierNote');
- if(note)note.textContent=ENTITLEMENT.plan==='free'?L('無料版：'+nf+'種の楽器が鳴ります（PRO の印の楽器は PRO で）。','Free: '+nf+' instruments play (instruments marked PRO need PRO).'):L('テスト公開中は全部の楽器が鳴ります。PRO の印は、正式公開後に PRO で使える楽器です。','During the public test every instrument plays. Instruments marked PRO will need PRO after launch.');
+ if(note)note.textContent=ENTITLEMENT.plan==='free'?L('無料版：'+nf+'種の楽器が鳴ります（PRO の印の楽器は PRO で）。','Free: '+nf+' instruments play (instruments marked PRO need PRO).'):LIVE?L('すべての楽器を使えます。','All instruments are available.'):L('テスト公開中は全部の楽器が鳴ります。PRO の印は、正式公開後に PRO で使える楽器です。','During the public test every instrument plays. Instruments marked PRO will need PRO after launch.');
  // 鳴っている途中の使えない楽器は、すぐ消す（余韻を残さない）
  if(ctx)for(const v of [...realVoices])if(!instrAllowed(v.k)){try{v.env.gain.setTargetAtTime(0,ctx.currentTime,.05);v.src.stop(ctx.currentTime+.3)}catch(e){}realVoices.delete(v)}
  const cb=$('planPreview');if(cb)cb.checked=ENTITLEMENT.plan==='free';applyRecTier()}
