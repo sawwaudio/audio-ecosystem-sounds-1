@@ -3565,6 +3565,22 @@ const EXACT={
 '▶ 自律演奏':'▶ Autoplay',
 '全画面':'Full screen',
 '配信用の映像':'Streaming visual',
+'管理者入口':'Admin',
+'Archive · 公開許諾を確認した資料はまだありません。':'Archive · No material with confirmed publishing permission yet.',
+'すべての生き物と環境音を使えます。':'All wildlife and ambience recordings are available.',
+'すべて表示（97）':'Show all (97)',
+'すべての楽器を使えます。':'All instruments are available.',
+'無料のままでも、写真で選ぶ・自律演奏・リール作りが使えます。PRO にすると、すべての楽器とスタジオ（ミキサー・サンプラー・トラック）が使えます。':'On the free plan you can pick sounds by photo, run autonomous play and make reels. PRO adds every instrument and the studio (mixer, sampler, tracks).',
+'USD / 月（税込）':'USD / month (tax incl.)',
+'年額 US$99.99（税込）・毎年自動更新':'US$99.99 per year (tax incl.), renews yearly',
+'いつでも解約でき、次の更新日までは PRO のまま使えます。':'Cancel anytime; PRO stays active until the next renewal date.',
+'生き物の声25録音（鳥・虫・両生類・哺乳類・水の生き物から各5録音）と環境音10録音':'25 wildlife recordings (5 each of birds, insects, amphibians, mammals and aquatic life) and 10 ambience recordings',
+'すべての生き物の声（97録音）':'All wildlife recordings (97)',
+'2026年12月31日まで全機能を無料開放中（日本時間）':'All features are free until Dec 31, 2026 (Japan time)',
+'特定商取引法に基づく表記':'Legal notice (Japanese Act on Specified Commercial Transactions)',
+'PRO で鳴らせる生き物':'Wildlife available with PRO',
+'1オクターブ下げる':'One octave down',
+'1オクターブ上げる':'One octave up',
 '公式サイトを開く':'Open the official site',
 '公式サイト':'Official site',
 'サイト':'Site',
@@ -3645,7 +3661,7 @@ function tr(s){if(!s||!JP.test(s))return s;if(cache.has(s))return cache.get(s);l
   const c=s.match(/^([^：]+)：(.+)$/)||s.match(/^([^:]+?): (.+)$/);if(c&&(!JP.test(c[1])||leaf(c[1])!=null))out=tr(c[1])+': '+tr(c[2]);}
  if(out==null){for(const sep of [' — ',' · ',' ＋ ',' / ']){if(s.includes(sep)){out=s.split(sep).map(tr).join(sep===' ＋ '?' + ':sep);break}}}
  if(out==null)out=s;if(cache.size<5000)cache.set(s,out);return out}
-let lang='ja';try{const q=new URLSearchParams(location.search).get('lang');lang=(q==='en'||q==='ja')?q:(localStorage.getItem(KEY)==='en'?'en':'ja')}catch(e){}
+let lang='ja';try{const q=new URLSearchParams(location.search).get('lang');const s=localStorage.getItem(KEY);lang=(q==='en'||q==='ja')?q:(s==='en'||s==='ja')?s:(/^ja\b/i.test(navigator.language||'')?'ja':'en')}catch(e){lang='en'}
 const textRec=new Map(),attrRec=new Map(),ATTRS=['aria-label','title','placeholder'];
 const SKIP='script,style,#credits,[data-i18n-skip]',TABLES='#auditTable,#dbTable';
 function skipEl(el){if(!el||el.closest(SKIP))return true;const t=el.closest(TABLES);return !!(t&&!el.closest('th,thead'))}
