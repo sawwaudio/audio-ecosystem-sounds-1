@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>relay</title><p id="s">loading…</p>
+<script>
+// 一時：Instagram の投稿画面（CSPで外部fetch不可）へ動画ファイルを渡すための中継。投稿が終わったら staging ごと削除する。
+const q=new URLSearchParams(location.search),f=q.get('f'),n=q.get('n')||'video.mp4';
+fetch('../'+f).then(r=>r.arrayBuffer()).then(b=>{document.getElementById('s').textContent='sending '+b.byteLength;
+ const send=()=>{if(window.opener){window.opener.postMessage({saeFile:true,name:n,buf:b},'https://www.instagram.com',[b]);document.getElementById('s').textContent='sent';setTimeout(()=>window.close(),500)}};send()})
+ .catch(e=>document.getElementById('s').textContent='ERR '+e);
+</script>
