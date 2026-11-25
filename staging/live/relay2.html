@@ -1,7 +1,0 @@
-<!doctype html><meta charset="utf-8"><title>relay</title><p id="s">loading…</p>
-<script>
-// 一時：Instagram / Meta Business Suite の投稿画面（CSPで外部fetch不可）へ動画ファイルを渡すための中継。f=a.bin,b.bin&n=a.mp4,b.mp4&to=https://business.facebook.com。1本ずつ順に読む（同時に読むと失敗することがある）。投稿が終わったら staging ごと削除する。
-const q=new URLSearchParams(location.search),fs=(q.get('f')||'').split(','),ns=(q.get('n')||'').split(','),to=q.get('to')||'https://www.instagram.com',S=t=>document.getElementById('s').textContent=t;
-(async()=>{const bs=[];for(let i=0;i<fs.length;i++){let ok=false;for(let k=0;k<3&&!ok;k++){try{S('loading '+(i+1)+'/'+fs.length);const r=await fetch('../'+fs[i]+'?r='+Date.now());if(!r.ok)throw new Error('HTTP '+r.status);bs.push(await r.arrayBuffer());ok=true}catch(e){S('retry '+(i+1)+': '+e);await new Promise(r=>setTimeout(r,1500))}}if(!ok){S('ERR '+fs[i]);return}}
- const T=window.opener||(window.parent!==window?window.parent:null);if(!T){S('ERR no target');return}T.postMessage({saeFiles:true,files:bs.map((b,i)=>({name:ns[i]||('video'+i+'.mp4'),buf:b}))},to,bs);S('sent '+bs.length);if(window.opener)setTimeout(()=>window.close(),800)})();
-</script>
